@@ -17,5 +17,5 @@ setInterval(function() {
   ctx.fillRect(5, 5, 100, 100);
   return setTimeout(function() {
     return ctx.clearRect(5, 5, 100, 100);
-  }, 2000);
-}, 5000);
+  }, 3);
+}, 6);
