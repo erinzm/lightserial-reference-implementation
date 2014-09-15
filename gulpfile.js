@@ -10,13 +10,14 @@ var gulp = require('gulp'),
     minifyCSS = require('gulp-minify-css'),
     sass = require('gulp-ruby-sass'),
     csslint = require('gulp-csslint'),
+    coffee = require ('gulp-coffee'),
     browserSync = require('browser-sync'),
     browserReload = browserSync.reload;
 
 
 // Minify all css files in the css directory
 // Run this in the root directory of the project with `gulp minify-css `
-gulp.task('minify-css', function(){
+gulp.task('minify-css', function() {
   gulp.src('./css/i.css')
     .pipe(minifyCSS({keepSpecialComments: 0}))
     .pipe(rename('i.min.css'))
@@ -26,7 +27,7 @@ gulp.task('minify-css', function(){
 
 // Use csslint without box-sizing or compatible vendor prefixes (these
 // don't seem to be kept up to date on what to yell about)
-gulp.task('csslint', function(){
+gulp.task('csslint', function () {
   gulp.src('./css/i.css')
     .pipe(csslint({
           'compatible-vendor-prefixes': false,
@@ -38,7 +39,7 @@ gulp.task('csslint', function(){
 });
 
 // Task that compiles scss files down to good old css
-gulp.task('pre-process', function(){
+gulp.task('pre-process-scss', function() {
   gulp.src('./sass/i.scss')
       .pipe(watch(function(files) {
         return files.pipe(sass({loadPath: ['./sass/'], style: "compact"}))
@@ -47,6 +48,13 @@ gulp.task('pre-process', function(){
           .pipe(gulp.dest('css'))
           .pipe(browserSync.reload({stream:true}));
       }));
+});
+
+// Compile .coffee files down to JS
+gulp.task('compile-coffee', function () {
+  gulp.src('./coffee/*.coffee')
+      .pipe(coffee({bare: true}).on('error', gutil.log))
+      .pipe(gulp.dest('./js/'))
 });
 
 // Initialize browser-sync which starts a static server also allows for 
@@ -72,9 +80,11 @@ gulp.task('bs-reload', function () {
  • Reloads browsers when you change html or sass files
 
 */
-gulp.task('default', ['pre-process', 'minify-css', 'bs-reload', 'browser-sync'], function(){
-  gulp.start('pre-process', 'csslint');
-  gulp.watch('sass/*.scss', ['pre-process', 'minify-css']);
+gulp.task('default', ['pre-process-scss', 'minify-css', 'compile-coffee', 'bs-reload', 'browser-sync'], function(){
+  gulp.start('pre-process-scss', 'csslint');
+  gulp.watch('sass/*.scss', ['pre-process-scss', 'minify-css']);
+  gulp.watch('coffee/*.coffee', ['compile-coffee']);
+  gulp.watch('js/*.js', ['bs-reload']);
   gulp.watch('css/i.css', ['bs-reload']);
   gulp.watch('*.html', ['bs-reload']);
 });
